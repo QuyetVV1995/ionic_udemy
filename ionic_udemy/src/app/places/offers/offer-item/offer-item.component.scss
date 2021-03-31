@@ -1,0 +1,17 @@
+h1 {
+  font-size: 18px;
+  border: 1px solid #f72644;
+  padding: 8px;
+  border-radius: 5px;
+  color: #f72644;
+}
+
+.offer-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .space-left {
+    margin-left: 1px;
+  }
+}
