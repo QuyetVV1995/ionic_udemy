@@ -4,39 +4,24 @@ import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
-import { of } from 'rxjs';
+
+
+interface PlaceData{
+  availableFrom: string;
+  availableTo: string;
+  description: string;
+  imageUrl: string;
+  price: number;
+  title: string;
+  userId: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class PlacesService {
 
-  private _places = new BehaviorSubject<Place[]>([
-    new Place('p1',
-    'Manhattan Mansion',
-    'in the heart of New York City','https://i.pinimg.com/originals/a3/f7/36/a3f7362fce7e50c975c42912806c93e3.jpg',
-    149.99,
-    new Date('2021-01-01'),
-    new Date('2021-12-31'),
-    'abc'
-    ),
-    new Place('p2',
-    'Amour Toujours',
-    'A romantic place in Paris','https://www.kkhotels.com/wp-content/uploads/2020/01/Paris-City-Eiffeltower-View.jpg',
-    189.99,
-    new Date('2021-01-01'),
-    new Date('2021-12-31'),
-    'abc'
-    ),
-    new Place('p3',
-    'The Foggy Palace',
-    'Not your average city trip','https://d3mvlb3hz2g78.cloudfront.net/wp-content/uploads/2011/08/thumb_720_450_fog_shutterstock_78589198.jpg',
-    99.99,
-    new Date('2021-01-01'),
-    new Date('2021-12-31'),
-    'abc'
-     )
-  ]) ;
+  private _places = new BehaviorSubject<Place[]>([]) ;
 
   get places() {
     return this._places.asObservable();
@@ -45,6 +30,32 @@ export class PlacesService {
 
   constructor(private authService: AuthService,
     private http: HttpClient) { }
+
+  fetchPlaces(){
+    return this.http
+    .get<{[key:string]: PlaceData }>('https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/offered-places.json')
+    .pipe(map(resData => {
+      const places = [];
+
+      for(const key in resData){
+        if( resData.hasOwnProperty(key)){
+          places.push(new Place(key,
+            resData[key].title,
+            resData[key].description,
+            resData[key].imageUrl,
+            resData[key].price,
+            new Date(resData[key].availableFrom),
+            new Date(resData[key].availableTo),
+            resData[key].userId))
+        }
+      }
+      return places;
+    }),
+    tap(places => {
+      this._places.next(places);
+    })
+    );
+  }
 
   getPlace(id: string){
     return this.places.pipe(take(1), map(places => {
