@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { take,tap } from "rxjs/operators";
+import { delay, take,tap } from "rxjs/operators";
 import { AuthService } from "../auth/auth.service";
 import { Booking } from "./booking.model";
 
@@ -21,8 +21,19 @@ export class BookingService{
       Math.random.toString(), placeId, this.authService.userId,
       placeTitle, placeImage, fisrtName, lastName, guestNumber, dateFrom, dateTo
     );
-    this._bookings.pipe(take(1), tap(bookings => {
+    return this._bookings.pipe(take(1),
+    delay(1000),
+    tap(bookings => {
       this._bookings.next(bookings.concat(newBooking));
-    }))
+    }));
+  }
+
+
+  cancelBooking(bookingId: string){
+    return this._bookings.pipe(take(1),
+    delay(1000),
+    tap(bookings => {
+      this._bookings.next(bookings.filter(b => b.id !== bookingId));
+    }));
   }
 }
