@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
-import { take, map, tap, delay } from 'rxjs/operators';
+import { take, map, tap, delay, switchMap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +43,8 @@ export class PlacesService {
   }
 
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService,
+    private http: HttpClient) { }
 
   getPlace(id: string){
     return this.places.pipe(take(1), map(places => {
@@ -52,14 +55,29 @@ export class PlacesService {
   }
 
   addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date ){
+
+    let generatedId: string;
     const newPlace = new Place(Math.random.toString(), title, description,
     'https://www.kkhotels.com/wp-content/uploads/2020/01/Paris-City-Eiffeltower-View.jpg',
     price, dateFrom, dateTo,
     this.authService.userId);
 
-    this.places.pipe(take(1)).subscribe(places => {
-      this._places.next(places.concat(newPlace));
-    });
+    return this.http
+    .post<{name: string}>('https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/offered-places.json', {...newPlace, id:null })
+    .pipe(
+      switchMap(resData => {
+        generatedId = resData.name;
+        return this.places;
+      }),
+      take(1),
+      tap(places => {
+        newPlace.id = generatedId;
+        this._places.next(places.concat(newPlace));
+      })
+    ).subscribe();
+    // return this.places.pipe(take(1)).subscribe(places => {
+    //   this._places.next(places.concat(newPlace));
+    // });
   }
 
   updatePlace(placeId: string, title: string, description: string){
