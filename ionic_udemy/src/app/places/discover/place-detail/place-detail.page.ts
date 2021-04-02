@@ -41,10 +41,11 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         return;
       }
       this.isLoading = true;
-      this.placeSub = this.placesService.getPlace(paramMap.get('placeId')).subscribe(places => {
-        this.place = places;
-        this.isBookable = places.userId !== this.authService.userId;
-        this.isLoading = false;
+      this.placeSub = this.placesService.getPlace(paramMap.get('placeId'))
+        .subscribe(places => {
+          this.place = places;
+          this.isBookable = places.userId !== this.authService.userId;
+          this.isLoading = false;
       }, error => {
         this.alertCtrl.create({
           header: 'An error ocurred',
