@@ -15,6 +15,8 @@ export class EditOfferPage implements OnInit, OnDestroy {
 
   place: Place;
   form: FormGroup;
+  isLoading = false;
+  placeId: string;
   private placeSub: Subscription;
 
   constructor(
@@ -32,6 +34,9 @@ export class EditOfferPage implements OnInit, OnDestroy {
         this.navCtrl.navigateBack('/places/offers');
         return;
       }
+      // Lay tham so id tu browser
+      this.placeId = paramMap.get('placeId');
+      this.isLoading = true;
       this.placeSub = this.placesService.getPlace(paramMap.get('placeId')).subscribe(place => {
         this.place = place;
       });
@@ -46,28 +51,34 @@ export class EditOfferPage implements OnInit, OnDestroy {
           validators: [Validators.required, Validators.maxLength(180)]
         })
 
-      })
+      });
+      this.isLoading = false;
     });
 
   }
 
-  onUpdateOffer(){
-    if(!this.form.valid){
+  onUpdateOffer() {
+    if (!this.form.valid) {
       return;
     }
-    this.loadingCtrl.create({
-      message: 'Updating place...'
-    }).then(loadingEl => {
-      loadingEl.present();
-      this.placesService.updatePlace(this.place.id,
-        this.form.value.title,
-        this.form.value.description).subscribe(() => {
-          loadingEl.dismiss();
-          this.form.reset();
-          this.router.navigate(['/places/offers']);
-        });
-    })
-
+    this.loadingCtrl
+      .create({
+        message: 'Updating place...'
+      })
+      .then(loadingEl => {
+        loadingEl.present();
+        this.placesService
+          .updatePlace(
+            this.place.id,
+            this.form.value.title,
+            this.form.value.description
+          )
+          .subscribe(() => {
+            loadingEl.dismiss();
+            this.form.reset();
+            this.router.navigate(['/places/tabs/offers']);
+          });
+      });
   }
 
   ngOnDestroy(){
