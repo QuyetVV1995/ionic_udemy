@@ -57,26 +57,12 @@ export class PlacesService {
     );
   }
 
-
-  getPlace(id: string) {
-    return this.http
-      .get<PlaceData>(
-        `https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/offered-places/${id}.json`
-      )
-      .pipe(
-        map(placeData => {
-          return new Place(
-            id,
-            placeData.title,
-            placeData.description,
-            placeData.imageUrl,
-            placeData.price,
-            new Date(placeData.availableFrom),
-            new Date(placeData.availableTo),
-            placeData.userId
-          );
-        })
-      );
+  getPlace(id: string){
+    return this.places.pipe(take(1), map(places => {
+      return {...places.find(
+        p => p.id === id
+      )};
+    } ));
   }
 
   addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date ){
@@ -105,41 +91,21 @@ export class PlacesService {
     // });
   }
 
-  updatePlace(placeId: string, title: string, description: string) {
-    let updatedPlaces: Place[];
-    return this.places.pipe(
-      take(1),
-      switchMap(places => {
-        if(!places || places.length <= 0){
-          return this.fetchPlaces();
-        }else {
-          return of(places);
-        }
-      }),
-      switchMap(places => {
-        const updatedPlaceIndex = places.findIndex(pl => pl.id === placeId);
-        updatedPlaces = [...places];
-        const oldPlace = updatedPlaces[updatedPlaceIndex];
-        updatedPlaces[updatedPlaceIndex] = new Place(
-          oldPlace.id,
-          title,
-          description,
-          oldPlace.imageUrl,
-          oldPlace.price,
-          oldPlace.availableFrom,
-          oldPlace.availableTo,
-          oldPlace.userId
-        );
-        return this.http.put(
-          `https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/${placeId}.json`,
-          { ...updatedPlaces[updatedPlaceIndex], id: null }
-        );
-      }),
-      tap(() => {
-        this._places.next(updatedPlaces);
-      })
-    );
+
+  updatePlace(placeId: string, title: string, description: string){
+    return this.places.pipe(take(1),
+     delay(1000),
+     tap(places => {
+      const updatedPlaceIndex = places.findIndex(pl => pl.id === placeId);
+      const udpatePlaces = [...places];
+      const oldPlace = udpatePlaces[updatedPlaceIndex];
+      udpatePlaces[updatedPlaceIndex] = new Place(oldPlace.id, title, description,
+                        oldPlace.imageUrl,
+                        oldPlace.price,
+                        oldPlace.availableFrom,
+                        oldPlace.availableTo,
+                        oldPlace.userId );
+      this._places.next(udpatePlaces);
+    }))
   }
-
-
 }
