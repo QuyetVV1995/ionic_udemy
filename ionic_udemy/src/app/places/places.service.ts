@@ -31,31 +31,38 @@ export class PlacesService {
   constructor(private authService: AuthService,
     private http: HttpClient) { }
 
-  fetchPlaces(){
-    return this.http
-    .get<{[key:string]: PlaceData }>('https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/offered-places.json')
-    .pipe(map(resData => {
-      const places = [];
-
-      for(const key in resData){
-        if( resData.hasOwnProperty(key)){
-          places.push(new Place(key,
-            resData[key].title,
-            resData[key].description,
-            resData[key].imageUrl,
-            resData[key].price,
-            new Date(resData[key].availableFrom),
-            new Date(resData[key].availableTo),
-            resData[key].userId))
-        }
-      }
-      return places;
-    }),
-    tap(places => {
-      this._places.next(places);
-    })
-    );
-  }
+    fetchPlaces() {
+      return this.http
+        .get<{ [key: string]: PlaceData }>(
+          'https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/offered-places.json'
+        )
+        .pipe(
+          map(resData => {
+            const places = [];
+            for (const key in resData) {
+              if (resData.hasOwnProperty(key)) {
+                places.push(
+                  new Place(
+                    key,
+                    resData[key].title,
+                    resData[key].description,
+                    resData[key].imageUrl,
+                    resData[key].price,
+                    new Date(resData[key].availableFrom),
+                    new Date(resData[key].availableTo),
+                    resData[key].userId
+                  )
+                );
+              }
+            }
+            return places;
+            // return [];
+          }),
+          tap(places => {
+            this._places.next(places);
+          })
+        );
+    }
 
   getPlace(id: string) {
     return this.http
@@ -105,20 +112,39 @@ export class PlacesService {
   }
 
 
-  updatePlace(placeId: string, title: string, description: string){
-    return this.places.pipe(take(1),
-     delay(1000),
-     tap(places => {
-      const updatedPlaceIndex = places.findIndex(pl => pl.id === placeId);
-      const udpatePlaces = [...places];
-      const oldPlace = udpatePlaces[updatedPlaceIndex];
-      udpatePlaces[updatedPlaceIndex] = new Place(oldPlace.id, title, description,
-                        oldPlace.imageUrl,
-                        oldPlace.price,
-                        oldPlace.availableFrom,
-                        oldPlace.availableTo,
-                        oldPlace.userId );
-      this._places.next(udpatePlaces);
-    }))
+  updatePlace(placeId: string, title: string, description: string) {
+    let updatedPlaces: Place[];
+    return this.places.pipe(
+      take(1),
+      switchMap(places => {
+        if (!places || places.length <= 0) {
+          return this.fetchPlaces();
+        } else {
+          return of(places);
+        }
+      }),
+      switchMap(places => {
+        const updatedPlaceIndex = places.findIndex(pl => pl.id === placeId);
+        updatedPlaces = [...places];
+        const oldPlace = updatedPlaces[updatedPlaceIndex];
+        updatedPlaces[updatedPlaceIndex] = new Place(
+          oldPlace.id,
+          title,
+          description,
+          oldPlace.imageUrl,
+          oldPlace.price,
+          oldPlace.availableFrom,
+          oldPlace.availableTo,
+          oldPlace.userId
+        );
+        return this.http.put(
+          `https://ionic-angular-course.firebaseio.com/offered-places/${placeId}.json`,
+          { ...updatedPlaces[updatedPlaceIndex], id: null }
+        );
+      }),
+      tap(() => {
+        this._places.next(updatedPlaces);
+      })
+    );
   }
 }
