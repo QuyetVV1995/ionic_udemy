@@ -1,5 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { from } from 'rxjs';
+import { environment} from '../../../environments/environment';
 
 @Component({
   selector: 'app-map-modal',
@@ -49,7 +51,7 @@ export class MapModalComponent implements OnInit, AfterViewInit {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src =
-        'https://maps.googleapis.com/maps/api/js?key=AIzaSyDtA_NVHjrtTvuby-xuHelM0bGmkGCMsew';
+        'https://maps.googleapis.com/maps/api/js?key=' + environment.googleMapsAPIKey;
       script.async = true;
       script.defer = true;
       document.body.appendChild(script);
