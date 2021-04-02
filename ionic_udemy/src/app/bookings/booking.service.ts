@@ -71,11 +71,15 @@ export class BookingService{
 
 
   cancelBooking(bookingId: string){
-    return this._bookings.pipe(take(1),
-    delay(1000),
+    return this.http.delete(`https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/bookings/${bookingId}.json`)
+    .pipe(switchMap(() => {
+      return this.bookings;
+    }),
+    take(1),
     tap(bookings => {
       this._bookings.next(bookings.filter(b => b.id !== bookingId));
     }));
+
   }
 
   fetchBookings(){
