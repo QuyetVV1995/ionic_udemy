@@ -1,6 +1,7 @@
+import { error } from '@angular/compiler/src/util';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ActionSheetController, LoadingController, ModalController, NavController } from '@ionic/angular';
+import { ActionSheetController, AlertController, LoadingController, ModalController, NavController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 import { BookingService } from 'src/app/bookings/booking.service';
@@ -17,6 +18,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
 
   place: Place;
   isBookable = false;
+  isLoading = false;
   private placeSub: Subscription;
 
   constructor(
@@ -27,7 +29,9 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     private actionSheetCtrl: ActionSheetController,
     private bookingService: BookingService,
     private loadingCtrl: LoadingController,
-    private authService: AuthService
+    private authService: AuthService,
+    private alertCtrl: AlertController,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -36,12 +40,23 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         this.navCtrl.navigateBack('/places/discover');
         return;
       }
+      this.isLoading = true;
       this.placeSub = this.placesService.getPlace(paramMap.get('placeId')).subscribe(places => {
         this.place = places;
         this.isBookable = places.userId !== this.authService.userId;
-      });
-
-
+        this.isLoading = false;
+      }, error => {
+        this.alertCtrl.create({
+          header: 'An error ocurred',
+          message : 'Cloud not load place',
+          buttons: [{text: 'Okay', handler: () => {
+            this.router.navigate(['/places/discover']);
+          }}]
+        }).then(alertEl => {
+          alertEl.present();
+        });
+      }
+      );
     });
   }
 
