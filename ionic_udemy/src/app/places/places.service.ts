@@ -89,30 +89,65 @@ export class PlacesService {
       );
   }
 
-  addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date, location: PlaceLocation ){
 
+
+  uploadImage(image: File) {
+    const uploadData = new FormData();
+    uploadData.append('image', image);
+
+    return this.http.post<{imageUrl: string, imagePath: string}>(
+      'https://us-central1-ionic-angular-course-c7adb.cloudfunctions.net/storeImage',
+      uploadData
+    );
+  }
+
+  addPlace(
+    title: string,
+    description: string,
+    price: number,
+    dateFrom: Date,
+    dateTo: Date,
+    location: PlaceLocation,
+    imageUrl: string
+  ) {
     let generatedId: string;
-    const newPlace = new Place(Math.random.toString(), title, description,
-    'https://www.kkhotels.com/wp-content/uploads/2020/01/Paris-City-Eiffeltower-View.jpg',
-    price, dateFrom, dateTo,
-    this.authService.userId, location);
-
+    const newPlace = new Place(
+      Math.random().toString(),
+      title,
+      description,
+      imageUrl,
+      price,
+      dateFrom,
+      dateTo,
+      this.authService.userId,
+      location
+    );
     return this.http
-    .post<{name: string}>('https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/offered-places.json', {...newPlace, id:null })
-    .pipe(
-      switchMap(resData => {
-        generatedId = resData.name;
-        return this.places;
-      }),
-      take(1),
-      tap(places => {
-        newPlace.id = generatedId;
-        this._places.next(places.concat(newPlace));
-      })
-    ).subscribe();
-    // return this.places.pipe(take(1)).subscribe(places => {
-    //   this._places.next(places.concat(newPlace));
-    // });
+      .post<{ name: string }>(
+        'https://ionic-angular-course.firebaseio.com/offered-places.json',
+        {
+          ...newPlace,
+          id: null
+        }
+      )
+      .pipe(
+        switchMap(resData => {
+          generatedId = resData.name;
+          return this.places;
+        }),
+        take(1),
+        tap(places => {
+          newPlace.id = generatedId;
+          this._places.next(places.concat(newPlace));
+        })
+      );
+    // return this.places.pipe(
+    //   take(1),
+    //   delay(1000),
+    //   tap(places => {
+    //     this._places.next(places.concat(newPlace));
+    //   })
+    // );
   }
 
 

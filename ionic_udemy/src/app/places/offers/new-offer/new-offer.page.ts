@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { LoadingController } from '@ionic/angular';
+import { switchMap } from 'rxjs/operators';
 import { PlaceLocation } from '../../location.model';
 import { PlacesService } from '../../places.service';
 
@@ -35,6 +37,7 @@ export class NewOfferPage implements OnInit {
   form: FormGroup;
 
   constructor(private placeService: PlacesService,
+    private loadingCtrl: LoadingController,
     private router: Router) { }
 
   ngOnInit() {
@@ -71,17 +74,33 @@ export class NewOfferPage implements OnInit {
     if (!this.form.valid || !this.form.get('image').value) {
       return;
     }
-    console.log(this.form.value);
-    this.placeService.addPlace(
-      this.form.value.title,
-      this.form.value.description,
-      +this.form.value.price,
-      new Date(this.form.value.dateFrom),
-      new Date(this.form.value.dateTo),
-      this.form.value.location
-    );
-    this.form.reset();
-    this.router.navigate(['/places/offers']);
+    this.loadingCtrl
+      .create({
+        message: 'Creating place...'
+      })
+      .then(loadingEl => {
+        loadingEl.present();
+        this.placeService
+          .uploadImage(this.form.get('image').value)
+          .pipe(
+            switchMap(uploadRes => {
+              return this.placeService.addPlace(
+                this.form.value.title,
+                this.form.value.description,
+                +this.form.value.price,
+                new Date(this.form.value.dateFrom),
+                new Date(this.form.value.dateTo),
+                this.form.value.location,
+                uploadRes.imageUrl
+              );
+            })
+          )
+          .subscribe(() => {
+            loadingEl.dismiss();
+            this.form.reset();
+            this.router.navigate(['/places/tabs/offers']);
+          });
+      });
   }
 
 
