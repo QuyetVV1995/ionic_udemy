@@ -59,7 +59,7 @@ export class BookingService{
             dateTo
           );
           return this.http.post<{ name: string }>(
-            'https://ionic-angular-course.firebaseio.com/bookings.json',
+            'https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com//bookings.json',
             { ...newBooking, id: null }
           );
         }),
@@ -89,9 +89,15 @@ export class BookingService{
   }
 
   fetchBookings(){
-    return this.http.get<{[key:string]: BookingData}>(`https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
-    .pipe(
-      map(bookingData => {
+    return this.authService.userId.pipe(switchMap(userId => {
+      if(!userId){
+        throw new Error('User not found');
+      }
+
+      return this.http
+      .get<{[key:string]: BookingData}>(`https://ionic-angular-course-c7adb-default-rtdb.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${userId}"`)
+
+    }),map(bookingData => {
       const bookings = [];
       for (const key in bookingData){
         if(bookingData.hasOwnProperty(key)){
