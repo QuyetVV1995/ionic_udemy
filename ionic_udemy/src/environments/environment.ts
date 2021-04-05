@@ -4,7 +4,10 @@
 
 export const environment = {
   production: false,
-  googleMapsAPIKey: 'AIzaSyDtA_NVHjrtTvuby-xuHelM0bGmkGCMsew'
+  googleMapsAPIKey: 'AIzaSyDtA_NVHjrtTvuby-xuHelM0bGmkGCMsew',
+  firebaseAPIKey: 'AIzaSyA5GogeGcZMr0gMXaSj-AzlQHRECJCJg_I'
+
+
 };
 
 /*
