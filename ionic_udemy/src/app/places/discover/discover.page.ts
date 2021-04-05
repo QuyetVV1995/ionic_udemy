@@ -35,14 +35,15 @@ export class DiscoverPage implements OnInit, OnDestroy {
   }
 
   onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>){
-    if(event.detail.value === 'all'){
-      this.relevantPlaces = this.loadedPlaces;
+    this.authService.userId.subscribe(userId => {
+      if(event.detail.value === 'all'){
+        this.relevantPlaces = this.loadedPlaces;
+        this.listedLoadedPlace = this.loadedPlaces.slice(1);
+      }else{
+        this.relevantPlaces = this.loadedPlaces.filter(place => place.userId !== userId);
+      };
       this.listedLoadedPlace = this.loadedPlaces.slice(1);
-    }else{
-      this.relevantPlaces = this.loadedPlaces.filter(place => place.userId !== this.authService.userId);
-    };
-    this.listedLoadedPlace = this.loadedPlaces.slice(1);
-
+    });
   }
 
   ngOnDestroy(){
